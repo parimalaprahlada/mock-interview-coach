@@ -15,3 +15,12 @@ def get_session_history(session_id: str):
         connection=f"sqlite:///{DB_PATH.as_posix()}",
     )
 
+
+_interview_ended: dict[str, bool] = {}
+
+def end_interview(session_id: str) -> None:
+    """Call when the candidate finishes the interview — unlocks the answer key."""
+    _interview_ended[session_id] = True
+
+def is_interview_over(session_id: str) -> bool:
+    return _interview_ended.get(session_id, False)

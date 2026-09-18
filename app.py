@@ -5,6 +5,7 @@ load_dotenv()
 from langchain_core.runnables.history import RunnableWithMessageHistory
 from chains import interview_chain, feedback_chain
 from memory_store import get_session_history
+from answer_key import show_answers
 
 interview_with_memory = RunnableWithMessageHistory(
     interview_chain, 
@@ -73,3 +74,17 @@ else:
         transcript = format_transcript(name)
         report = feedback_chain.invoke({"role": role, "transcript": transcript})
     st.write(report)
+    
+    st.subheader("Answer Key")
+    if st.button("Show me answers"):
+        with st.spinner("Looking up sources and generating answer key..."):
+            answer_key = show_answers(name, role)
+        for item in answer_key:
+            st.markdown(f"**Q: {item['question']}**")
+            st.write(item["answer_key"])
+            if not item["citations_valid"]:
+                st.caption("⚠️ Some citations may not be fully grounded in the sources shown.")
+            with st.expander("Sources"):
+                for idx, s in enumerate(item["sources"], start=1):
+                    st.write(f"[{idx}] {s['url']}")
+            st.divider()

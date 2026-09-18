@@ -23,3 +23,20 @@ feedback_prompt = ChatPromptTemplate.from_messages([
 ]
     
 )
+
+citation_prompt = ChatPromptTemplate.from_messages([
+    ("system",
+     "The interview is over. For the question and the candidate's answer below, "
+     "use ONLY the provided sources to: "
+     "1) State the ideal answer clearly. "
+     "2) Compare it to the candidate's answer. "
+     "3) Note gaps or inaccuracies, specifically and constructively. "
+     "Cite sources inline as [1], [2], matching the numbered list. "
+     "Never cite anything not in the source list — if the sources don't fully "
+     "cover something, say so explicitly rather than filling the gap from your "
+     "own knowledge."),
+    ("human",
+     "Question: {question}\n\n"
+     "Candidate's answer: {candidate_answer}\n\n"
+     "Sources:\n{sources}")
+])

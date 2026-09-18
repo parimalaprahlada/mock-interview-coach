@@ -1,7 +1,7 @@
 import os
 from langchain_groq import ChatGroq
 from langchain_openai import ChatOpenAI
-from prompts import interview_prompt, feedback_prompt
+from prompts import interview_prompt, feedback_prompt, citation_prompt
 from langchain_core.output_parsers import StrOutputParser
 api_key = os.environ["api_key"]
 base_url = os.environ["base_url"]
@@ -19,3 +19,4 @@ openai_llm = ChatOpenAI(
 #Extract plain text from AImessage
 interview_chain = interview_prompt|groq_llm|StrOutputParser()
 feedback_chain = feedback_prompt|openai_llm|StrOutputParser()
+citation_chain = citation_prompt | openai_llm
