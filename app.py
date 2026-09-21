@@ -76,15 +76,48 @@ else:
     st.write(report)
     
     st.subheader("Answer Key")
+
+    if "answer_key_cache" not in st.session_state:
+        st.session_state.answer_key_cache = {}
+
+    # if st.button("Show me answers"):
+    #     with st.spinner("Looking up sources and generating answer key..."):
+    #         cached = st.session_state.answer_key_cache.get(name, [])
+    #         answer_key = show_answers(name, role, cache=cached)
+    #     st.session_state.answer_key_cache[name] = answer_key        
+    #     for idx, item in enumerate(answer_key, start=1):
+    #         st.markdown(f"### Question {idx}")
+    #         st.markdown(f"**Interviewer asked:** {item['question']}")
+    #         st.markdown(f"**Your answer:** {item['candidate_answer']}")
+    #         st.markdown("**Ideal answer & feedback:**")
+    #         st.write(item["answer_key"])
+    #         if not item["citations_valid"]:
+    #             st.caption("Some citations may not be fully grounded in the sources shown.")
+    #         with st.expander("Sources"):
+    #             for s_idx, s in enumerate(item["sources"], start=1):
+    #                 st.write(f"[{s_idx}] {s['url']}")
+    #         st.divider()
+        
     if st.button("Show me answers"):
         with st.spinner("Looking up sources and generating answer key..."):
-            answer_key = show_answers(name, role)
-        for item in answer_key:
-            st.markdown(f"**Q: {item['question']}**")
+            cached = st.session_state.answer_key_cache.get(name, [])
+            st.session_state.answer_key_cache[name] = show_answers(name, role, cache=cached)
+
+    # Renders whatever is cached, on every rerun — not just the click that generated it
+    if name in st.session_state.answer_key_cache:
+        for idx, item in enumerate(st.session_state.answer_key_cache[name], start=1):
+            st.markdown(f"### Question {idx}")
+            st.markdown(f"**Interviewer asked:** {item['question']}")
+            st.markdown(f"**Your answer:** {item['candidate_answer']}")
+            st.markdown("**Ideal answer & feedback:**")
             st.write(item["answer_key"])
             if not item["citations_valid"]:
-                st.caption("⚠️ Some citations may not be fully grounded in the sources shown.")
+                st.caption("Some citations may not be fully grounded in the sources shown.")
             with st.expander("Sources"):
-                for idx, s in enumerate(item["sources"], start=1):
-                    st.write(f"[{idx}] {s['url']}")
+                for s_idx, s in enumerate(item["sources"], start=1):
+                    st.write(f"[{s_idx}] {s['url']}")
             st.divider()
+
+    if st.button("Continue Interview"):
+        st.session_state.interview_ended = False
+        st.rerun()  

@@ -1,3 +1,4 @@
+# answer_key.py
 import re
 from memory_store import get_session_history
 from chains import citation_chain
@@ -22,9 +23,32 @@ def _validate_citations(answer_text: str, num_sources: int) -> bool:
     return all(1 <= n <= num_sources for n in cited) if cited else True
 
 
-def show_answers(session_id: str, role: str) -> list[dict]:
-    results = []
-    for question, candidate_answer in _get_qa_pairs(session_id):
+# def show_answers(session_id: str, role: str) -> list[dict]:
+#     results = []
+#     for question, candidate_answer in _get_qa_pairs(session_id):
+#         sources = search_tool.invoke(question)
+#         formatted_sources = "\n".join(
+#             f"[{j + 1}] {s['content']} ({s['url']})" for j, s in enumerate(sources)
+#         )
+#         response = citation_chain.invoke({
+#             "question": question,
+#             "candidate_answer": candidate_answer,
+#             "sources": formatted_sources,
+#         })
+#         results.append({
+#             "question": question,
+#             "candidate_answer": candidate_answer,
+#             "answer_key": response.content,
+#             "sources": sources,
+#             "citations_valid": _validate_citations(response.content, len(sources)),
+#         })
+#     return results
+def show_answers(session_id: str, role: str, cache: list[dict] | None = None) -> list[dict]:
+    cache = list(cache) if cache else []
+    pairs = _get_qa_pairs(session_id)
+    already_done = len(cache)
+
+    for question, candidate_answer in pairs[already_done:]:
         sources = search_tool.invoke(question)
         formatted_sources = "\n".join(
             f"[{j + 1}] {s['content']} ({s['url']})" for j, s in enumerate(sources)
@@ -34,11 +58,12 @@ def show_answers(session_id: str, role: str) -> list[dict]:
             "candidate_answer": candidate_answer,
             "sources": formatted_sources,
         })
-        results.append({
+        cache.append({
             "question": question,
             "candidate_answer": candidate_answer,
             "answer_key": response.content,
             "sources": sources,
             "citations_valid": _validate_citations(response.content, len(sources)),
         })
-    return results
+
+    return cache
