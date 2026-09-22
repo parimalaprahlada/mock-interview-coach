@@ -5,7 +5,7 @@ from openai import RateLimitError, APIError, APIConnectionError, APITimeoutError
 
 _lock = threading.Lock()
 _last_call_time = [0.0]
-MIN_INTERVAL = 2.0  # seconds between outgoing calls — tune to your actual Groq RPM limit
+MIN_INTERVAL = 2.2  # seconds between outgoing calls — tune to your actual Groq RPM limit
 
 def _throttle():
     with _lock:
