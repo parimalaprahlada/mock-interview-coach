@@ -6,6 +6,7 @@ from langchain_core.runnables.history import RunnableWithMessageHistory
 from chains import interview_chain, feedback_chain
 from memory_store import get_session_history
 from answer_key import show_answers
+from resilience import resilient_invoke
 
 interview_with_memory = RunnableWithMessageHistory(
     interview_chain, 
@@ -67,11 +68,14 @@ config = {"configurable": {"session_id": session_id}}
 history = get_session_history(session_id)
 
 ##Only for brand new sessions
+# if len(history.messages) == 0:
+#     with st.spinner("Starting Interview"):
+#         interview_with_memory.invoke(
+#             {"role": role, "input": "Start the interview"}, config=config
+#         )
 if len(history.messages) == 0:
     with st.spinner("Starting Interview"):
-        interview_with_memory.invoke(
-            {"role": role, "input": "Start the interview"}, config=config
-        )
+        resilient_invoke(interview_with_memory, {"role": role, "input": "Start the interview"}, config=config)
 
 # for msg in get_session_history(name).messages:
 #     with st.chat_message("assistant" if msg.type=="ai" else "user"):
@@ -93,7 +97,9 @@ if "interview_ended" not in st.session_state:
 if not st.session_state.interview_ended:
     answer = st.chat_input("Type your answer...")
     if answer:
-        interview_with_memory.invoke({"role": role, "input": answer}, config=config)
+        # interview_with_memory.invoke({"role": role, "input": answer}, config=config)
+        # st.rerun()
+        resilient_invoke(interview_with_memory, {"role": role, "input": answer}, config=config)
         st.rerun()
 
     if st.button("End Interview & Get Feeedback"):
@@ -101,9 +107,23 @@ if not st.session_state.interview_ended:
         st.rerun()
 else: 
     st.subheader("Feedback Report")
-    with st.spinner("Generating Report"):
-        transcript = format_transcript(session_id)
-        report = feedback_chain.invoke({"role": role, "transcript": transcript})
+    # with st.spinner("Generating Report"):
+    #     transcript = format_transcript(session_id)
+    #     report = feedback_chain.invoke({"role": role, "transcript": transcript})
+    # st.write(report)
+    if "feedback_cache" not in st.session_state:
+        st.session_state.feedback_cache = {}
+
+    history_messages = get_session_history(session_id).messages
+    cached = st.session_state.feedback_cache.get(session_id)
+
+    if cached and cached["message_count"] == len(history_messages):
+        report = cached["report"]
+    else:
+        with st.spinner("Generating Report"):
+            transcript = format_transcript(session_id)
+            report = resilient_invoke(feedback_chain, {"role": role, "transcript": transcript})
+        st.session_state.feedback_cache[session_id] = {"report": report, "message_count": len(history_messages)}
     st.write(report)
     
     st.subheader("Answer Key")

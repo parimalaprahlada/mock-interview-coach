@@ -14,6 +14,14 @@ openai_llm = ChatOpenAI(
     model="groq/openai/gpt-oss-20b", base_url=base_url,api_key=api_key
 )
 
+# groq_llm = ChatOpenAI(
+#     model="my-first-combo", base_url=base_url,api_key=api_key
+# )
+
+# openai_llm = ChatOpenAI(
+#     model="my-first-combo", base_url=base_url,api_key=api_key
+# )
+
 
 ##Langchain Chaining, Prompt->output->parser
 #Extract plain text from AImessage
