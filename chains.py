@@ -7,11 +7,11 @@ api_key = os.environ["api_key"]
 base_url = os.environ["base_url"]
 
 groq_llm = ChatOpenAI(
-    model="groq/openai/gpt-oss-20b", base_url=base_url,api_key=api_key
+    model="openai/gpt-oss-20b", base_url=base_url,api_key=api_key
 )
 
 openai_llm = ChatOpenAI(
-    model="groq/openai/gpt-oss-20b", base_url=base_url,api_key=api_key
+    model="openai/gpt-oss-20b", base_url=base_url,api_key=api_key
 )
 
 # groq_llm = ChatOpenAI(
